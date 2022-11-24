@@ -1,0 +1,107 @@
+﻿@page "/configure"
+
+@using Data
+@using System.Text.Json
+
+<b>Nickname : <input type="text" @bind="Nickname" /></b>
+<br />
+<b>Weight : <input type="number" @bind="Weight" /></b>
+<br />
+<b>Height : <input type="number" @bind="Height" /></b>
+<br />
+<b>Daily calories limit : <input type="number" @bind="DailyCaloriesLimit" /></b>
+<br />
+<b>Age : <input type="number" @bind="Age" /></b>
+<br />
+<b>Sex : @Sex 
+    <select name="sex" id="sex" @bind="Sex">
+        <option value="@Sex.Male">Male</option>
+        <option value="@Sex.Female">Female</option>
+</select></b> <br />
+<b>
+    Diet : @Diet 
+    <select name="diet" id="diet" @bind="Diet">
+        <option value="@Diet.Regular">Regular</option>
+        <option value="@Diet.Vegetarian">Vegetarian</option>
+</select></b> <br />
+<b>
+    Goal : @Goal
+    <select name="goal" id="goal" @bind="Goal">
+        <option value="@Goal.Nothing">Nothing</option>
+        <option value="@Goal.Reduction">Reduction</option>
+        <option value="@Goal.Gains">Gains</option>
+    </select>
+</b>
+<br />
+<b>IntolerableProducts : @IntolerableProducts <input type="text" @bind="IntolerableProducts" /></b>
+<br />
+<button @onclick="SaveChanges">Save changes</button>
+
+@code {
+    private const string configFileName = @"C:\Users\karol\source\repos\Bobsee-Pre-POC\Bobsee-Pre-POC\Resources\ProfileConfig.json";
+
+    private string Nickname { get; set; }
+    private int Weight { get; set; }
+    private int Height { get; set; }
+    private int Age { get; set; }
+    private int DailyCaloriesLimit { get; set; }
+    private Sex Sex { get; set; }
+    private Diet Diet { get; set; }
+    private Goal Goal { get; set; }
+    private string IntolerableProducts { get; set; }
+
+    private void LoadConfig()
+    {
+        var loadedUser = User.LoadedUser;
+        if (loadedUser is null)
+        {
+            if (!File.Exists(configFileName))
+            {
+                return;
+            }
+
+            var fileContent = File.ReadAllText(configFileName);
+            loadedUser = JsonSerializer.Deserialize<User>(fileContent);
+        }
+
+        Nickname = loadedUser.Nickname;
+        Weight = loadedUser.Weight;
+        Height = loadedUser.Height;
+        Age = loadedUser.Age;
+        DailyCaloriesLimit = loadedUser.DailyCaloriesLimit;
+        Sex = loadedUser.Sex;
+        Diet = loadedUser.Diet;
+        Goal = loadedUser.Goal;
+        IntolerableProducts = loadedUser.IntolerableProducts is null ? "" : string.Join(", ", loadedUser.IntolerableProducts);
+    }
+
+    private void SaveChanges()
+    {
+        var newUserConfiguration = new User
+        {
+                Nickname = Nickname,
+                Weight = Weight,
+                Height = Height,
+                Age = Age,
+                Sex = Sex,
+                Diet = Diet,
+                Goal = Goal,
+                DailyCaloriesLimit = DailyCaloriesLimit,
+                IntolerableProducts = IntolerableProducts
+                    .Replace(" ", "")
+                    .Split(','),
+                MealsEaten = new() { new Meal { Calories = 2, Name = "asd", Summary = "summ" }, new Meal { Calories = 23, Name = "asd2", Summary = "summ2" } }
+        };
+
+        User.LoadedUser = newUserConfiguration;
+
+        var json = JsonSerializer.Serialize<User>(newUserConfiguration);
+        File.WriteAllText(configFileName, json);
+    }
+
+    protected override void OnInitialized()
+    {
+        LoadConfig();
+        base.OnInitialized();
+    }
+}

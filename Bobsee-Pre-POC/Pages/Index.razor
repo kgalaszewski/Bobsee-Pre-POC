@@ -1,0 +1,49 @@
+﻿@page "/"
+
+@using Data
+
+@inject NavigationManager NavManager
+
+@if (User.LoadedUser is not null)
+{
+    <h1>Hello, @User.LoadedUser.Nickname !</h1>
+
+    <br />
+    <b>Your Bmi : @User.LoadedUser.BMI</b>
+    <br />
+    <b>Your Goal : @User.LoadedUser.Goal</b>
+    <br />
+    <b>Daily calories limit : @User.LoadedUser.DailyCaloriesLimit</b>
+    <br />
+    <b>Calories left: @User.LoadedUser.CaloriesLeft</b>
+    <br />
+    @if (!string.IsNullOrWhiteSpace(User.LoadedUser.Warning))
+    {
+        <b>Warning : @User.LoadedUser.Warning</b>
+    }
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <h2>Meals eaten:</h2>
+    @foreach (var meal in User.LoadedUser.MealsEaten)
+    {
+        <b>Name : @meal.Name</b> <br />
+        <b>Summary : @meal.Summary</b> <br />
+        <b>Calories : @meal.Calories</b> <br />
+        <br />
+    }
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (User.LoadedUser is null)
+        {
+            NavManager.NavigateTo("/configure");
+        }
+
+        base.OnInitialized();
+    }
+}
